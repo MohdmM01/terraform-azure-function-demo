@@ -1,0 +1,42 @@
+# This is a basic workflow to help you get started with Actions
+name: Formox Functions Dev
+
+on:
+  push:
+    branches: 
+    - main
+  repository_dispatch:
+    types: [deploy]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Clean
+      run: dotnet clean ./test-function.sln --configuration Debug && dotnet nuget locals all --clear        
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build "test-function.sln" --configuration Debug
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: dotnet publish
+      run: |
+        dotnet publish "DemoFunction\DemoFunction.csproj" -c Debug -o dotnetcorefunctionapp 
+    - name: Azure Functions Action
+      uses: Azure/functions-action@v1.1.7
+      with:
+        # Name of the Azure Function App
+        app-name: azu-fn-dev-eu-anisshared-001
+        # Path to package or folder. *.zip or a folder to deploy
+        package: './dotnetcorefunctionapp'
+        # Publish profile (*.publishsettings) file contents with web deploy secrets
+        publish-profile: ${{ secrets.functionAppPublishProfile }}
