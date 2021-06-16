@@ -36,10 +36,12 @@ namespace GetName
 
         [FunctionName("GetNameByEmail")]
         public static async Task<IActionResult> GetNameByEmail(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "getName/{email}")] HttpRequest req,
-            ILogger log, string email)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "getName")] HttpRequest req,
+            ILogger log)
         {
-            if (email == "alice.smith @gmail.com")
+            string email = req.Query["email"];
+
+            if (email == "alice.smith@gmail.com")
             {
                 User response = new User()
                 {
